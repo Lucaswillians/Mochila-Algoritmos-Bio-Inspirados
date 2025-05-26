@@ -1,100 +1,139 @@
-## Relatório de Benchmark: Problema da Mochila 0/1
+# 📦 Mochila com Algoritmos Bio-Inspirados - Refatoração
 
-### 1. Introdução
-Este relatório apresenta os resultados de um benchmark comparativo de oito algoritmos bio-inspirados na resolução do Problema da Mochila 0/1, para instâncias de tamanho grande:
-
-- **Instâncias testadas**:  
-  - 1500 itens  
-  - 10000 itens  
-- **Geração de dados**:  
-  - Pesos e valores são inteiros aleatórios em [1,100) para cada instância  
-  - **Capacidade da mochila**: 50 % da soma dos pesos  
-- **Parâmetros padrão**:  
-  - Iterações/Gerações = 100  
-  - População/Agentes: GA=50, ACO=50, PSO=30, CS=25, Bee=30, Bat=30, Firefly=25, WOA=30
+Este projeto aplica algoritmos bio-inspirados para resolver o problema da mochila 0/1. Recentemente, o código passou por uma refatoração significativa com foco em **organização, extensibilidade, testabilidade e manutenibilidade**.
 
 ---
 
-### 2. Metodologia
+## ✅ Refatorações Realizadas
 
-1. **Função de aptidão**  
-   - Soma dos valores se o peso total ≤ capacidade; caso contrário, retorna 0 (penalização).
+### 1. Aplicação do Design Pattern: Strategy
 
-2. **Algoritmos testados**  
-   - **Genetic Algorithm (GA)**: seleção por roleta, crossover de ponto único, mutação bit-flip.  
-   - **Ant Colony Optimization (ACO)**: feromônio + heurística valor/peso, evaporação e depósito.  
-   - **Particle Swarm Optimization (PSO)**: posições contínuas binarizadas via limiar 0.5.  
-   - **Cuckoo Search (CS)**: vizinhança por “salto” simples e abandono de ninhos.  
-   - **Bee Algorithm (BA)**: recrutamento ao redor de elites + exploradores aleatórios.  
-   - **Bat Algorithm (Bat)**: posicionamento contínuo e binarização via função sigmoide.  
-   - **Firefly Algorithm (Firefly)**: atração baseada em intensidade de luz e binarização.  
-   - **Whale Optimization Algorithm (WOA)**: modelagem de encalhe e busca global/local.
+**Antes:**  
+Cada algoritmo era implementado de forma acoplada, o que dificultava a manutenção e a adição de novos métodos de solução.
 
-3. **Configurações comuns**  
-   - Número de iterações/gerações: **100**  
-   - População/colônia/partículas conforme indicado acima  
-   - Sementes aleatórias não fixas (resultados estocásticos)
+**Depois:**  
+Adotamos o **padrão Strategy**, permitindo que cada algoritmo seja encapsulado em sua própria classe, herdando de uma interface comum (`SolverStrategy`).
 
-4. **Dificuldade numérica: overflow na função sigmoide**  
-   - Durante o **Bat Algorithm**, a binarização usa `prob = 1/(1+exp(-pos))`.  
-   - Com `pos` muito grande, `exp(-pos)` estourava o limite numérico e gerava warnings de *overflow*.  
-   - **Solução**: aplicamos  
-     ```python
-     z = np.clip(pos, -50, 50)
-     prob = 1.0 / (1.0 + np.exp(-z))
-     ```  
-     limitando o argumento do exponencial a ±50, garantindo estabilidade sem alterar a dinâmica do algoritmo.
+📂 Criamos a pasta `strategy/` com os seguintes módulos:
+- `ga.py`, `pso.py`, `aco.py`, `bee.py`, `bat.py`, `cuckoo.py`, `firefly.py`, `woa.py`
+- `base.py` define a interface `SolverStrategy`.
+
+**✔️ Vantagem:** Agora é possível adicionar novos algoritmos com facilidade e trocar estratégias sem modificar o código principal.
 
 ---
 
-### 3. Resultados
+### 2. Modularização do Projeto
 
-#### 3.1. Instância com 1500 itens
+**Estrutura anterior:**
 
-| Algoritmo | Valor obtido | Tempo (s) |
-|-----------|--------------|-----------|
-| GA        | 39 264       | 1.8614    |
-| ACO       | 48 282       | 4.8613    |
-| PSO       | 39 283       | 0.5006    |
-| Cuckoo    | 39 078       | 1.1397    |
-| Bee       | 41 887       | 0.8703    |
-| Bat       | 38 751       | 0.5429    |
-| Firefly   | 38 975       | 0.8834    |
-| WOA       | 39 316       | 0.4751    |
+![image](https://github.com/user-attachments/assets/874149d7-4b19-4fd9-8240-95c3ff619a65)
 
-#### 3.2. Instância com 10000 itens
 
-| Algoritmo | Valor obtido | Tempo (s) |
-|-----------|--------------|-----------|
-| GA        | 254 751      | 11.9178   |
-| ACO       | 313 168      | 31.7903   |
-| PSO       | 256 002      | 3.1107    |
-| Cuckoo    | 251 826      | 7.2539    |
-| Bee       | 256 291      | 5.6681    |
-| Bat       | 252 285      | 3.3415    |
-| Firefly   | 252 115      | 4.2189    |
-| WOA       | 251 512      | 2.9787    |
+**Estrutura atual com a refatoração:**
+
+![image](https://github.com/user-attachments/assets/88c2e7ac-4a62-4015-a4b4-92373a6b7868)
+
+
+
+**✔️ Vantagem:** Melhora a organização, separação de responsabilidades e escalabilidade do projeto, tornado a manutenção mais fácil e rica.
 
 ---
 
-### 4. Discussão
+### 3. Refatoração do Algoritmo Genético (GA)
 
-- **Qualidade da solução**  
-  - ACO atingiu o **maior valor** (48 282 e 313 168), porém com maior custo computacional.  
-  - Bee e PSO ficaram em níveis intermediários de valor, com PSO muito rápido.
+O algoritmo genético (`GASolver`) foi reescrito para ser mais robusto e alinhado com boas práticas:
 
-- **Desempenho (tempo de execução)**  
-  - **Mais rápido**: WOA (0.48 s e 2.98 s), seguido por PSO e Bat.  
-  - **Mais lento**: ACO (4.86 s e 31.79 s).
+- Uso de `numpy` para operações vetoriais mais rápidas.
+- Lógica de seleção, crossover e mutação corrigida e simplificada.
+- Correção no controle da melhor solução entre gerações.
+- Melhoria na legibilidade e performance.
 
-- **Impacto do overflow**  
-  - Sem o clipping, o Bat Algorithm gerava warnings e podia travar em instâncias grandes.  
-  - Com o corte em ±50, o comportamento estatístico se manteve e as medidas de tempo e valor não foram afetadas.
+**✔️ Vantagem:** Mais eficiente, claro e fácil de manter.
+
+
+**Código anterior:**
+
+![image](https://github.com/user-attachments/assets/658d5489-dab0-47dd-ab97-5c79b10fe98c)
+
+**Código atual:**
+
+```
+class GASolver(SolverStrategy):
+    def __init__(self, tam_pop=50, geracoes=100, tx_crossover=0.8, tx_mutacao=0.1):
+        self.tam_pop = tam_pop
+        self.geracoes = geracoes
+        self.tx_crossover = tx_crossover
+        self.tx_mutacao = tx_mutacao
+
+    def solve(self, problema: ProblemaMochila) -> Tuple[List[int], float]:
+        n_itens = len(problema.pesos)
+        pop = np.random.randint(2, size=(self.tam_pop, n_itens))
+        melhor = None
+        melhor_valor = float('-inf')
+
+        for _ in range(self.geracoes):
+            aptidoes = np.array([problema.aptidao(ind) for ind in pop])
+            soma = aptidoes.sum()
+            probs = aptidoes / soma if soma > 0 else None
+
+            idx_pais = np.random.choice(
+                self.tam_pop, size=self.tam_pop, p=probs
+            ) if probs is not None else np.random.choice(self.tam_pop, size=self.tam_pop)
+
+            nova_pop = pop[idx_pais].copy()
+
+            for i in range(0, self.tam_pop - 1, 2):
+                if random.random() < self.tx_crossover:
+                    ponto = random.randint(1, n_itens - 1)
+                    nova_pop[i, ponto:], nova_pop[i + 1, ponto:] = (
+                        nova_pop[i + 1, ponto:].copy(),
+                        nova_pop[i, ponto:].copy()
+                    )
+
+            for i in range(self.tam_pop):
+                for j in range(n_itens):
+                    if random.random() < self.tx_mutacao:
+                        nova_pop[i, j] = 1 - nova_pop[i, j]
+
+            pop = nova_pop
+            aptidoes = np.array([problema.aptidao(ind) for ind in pop])
+            idx_melhor = np.argmax(aptidoes)
+            if aptidoes[idx_melhor] > melhor_valor:
+                melhor = pop[idx_melhor].copy()
+                melhor_valor = aptidoes[idx_melhor]
+
+        return melhor.tolist(), float(melhor_valor)
+```
+
 
 ---
 
-### 5. Conclusão
+### 4. Implementação de Testes Automatizados
 
-- **ACO** é ideal para máxima qualidade, mas menos escalável em tempo.  
-- **WOA** e **PSO** oferecem ótima relação valor/tempo para instâncias grandes.  
-- O **Bat Algorithm** se beneficiou do tratamento de overflow, mantendo consistência sem penalizar desempenho.
+Foram criados testes utilizando `pytest`:
+
+- **`test_problem.py`**: Verifica a lógica da classe `ProblemaMochila`.
+- **`test_algorithm.py`**: Testa individualmente o algoritmo GA.
+- **`test_all_algorithm.py`**: Testa todos os algoritmos listados na pasta `strategy`.
+
+**Coberturas testadas:**
+- Tipo e formato das soluções
+- Correção dos valores retornados
+- Comportamento esperado com diferentes entradas
+
+**✔️ Vantagem:** Garantia de funcionamento dos algoritmos. Facilita futuras mudanças com segurança.
+
+---
+
+## 📈 Conclusão
+
+As mudanças aplicadas tornaram o projeto:
+
+- Mais **organizado** (com separação de responsabilidades)
+- **Extensível**, permitindo adicionar novos algoritmos facilmente
+- **Testável**, com cobertura automatizada
+- **Manutenível**, com menor acoplamento entre componentes
+
+O projeto agora está pronto para evoluir de forma sustentável e colaborativa. 🚀
+
+
