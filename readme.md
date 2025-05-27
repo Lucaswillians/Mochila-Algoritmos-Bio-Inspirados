@@ -4,6 +4,14 @@ Este projeto aplica algoritmos bio-inspirados para resolver o problema da mochil
 
 ---
 
+# 👤 Equipe
+
+* Cristian Prochnow
+* Gustavo Henrique Dias
+* Lucas Willian de Souza Serpa
+* Marlon de Souza
+* Ryan Gabriel Mazzei Bromati
+
 ## ✅ Refatorações Realizadas
 
 ### 1. Aplicação do Design Pattern: Strategy
