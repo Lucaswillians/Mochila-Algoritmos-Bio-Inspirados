@@ -4,7 +4,7 @@ Este projeto aplica algoritmos bio-inspirados para resolver o problema da mochil
 
 ---
 
-# 👤 Equipe
+## 👤 Equipe
 
 * Cristian Prochnow
 * Gustavo Henrique Dias
@@ -65,7 +65,7 @@ O algoritmo genético (`GASolver`) foi reescrito para ser mais robusto e alinhad
 
 **Código atual:**
 
-```
+```python
 class GASolver(SolverStrategy):
     def __init__(self, tam_pop=50, geracoes=100, tx_crossover=0.8, tx_mutacao=0.1):
         self.tam_pop = tam_pop
@@ -130,6 +130,55 @@ Foram criados testes utilizando `pytest`:
 - Comportamento esperado com diferentes entradas
 
 **✔️ Vantagem:** Garantia de funcionamento dos algoritmos. Facilita futuras mudanças com segurança.
+
+---
+
+## ⚡ Rodando Projeto
+
+### Algoritmo
+
+```shell
+$ python main.py
+
+[INFO] Itens   Algoritmo Valor   Tempo(s)  
+[INFO] 
+--- Testando com 1500 itens ---
+[INFO] 1500    GA        39198.0 2.1481    
+[INFO] 1500    ACO       48518   14.4099   
+[INFO] 1500    PSO       41026   0.1702    
+[INFO] 1500    Cuckoo    39172   0.1141    
+[INFO] 1500    Bee       42442   0.1428    
+[INFO] 1500    Bat       37552   0.3341    
+[INFO] 1500    Firefly   38472   1.2465    
+[INFO] 1500    WOA       38487   0.0815    
+[INFO] 
+--- Testando com 10000 itens ---
+[INFO] 10000   GA        253077.015.1486   
+[INFO] 10000   ACO       314021  72.2385   
+[INFO] 10000   PSO       251486  0.5262    
+[INFO] 10000   Cuckoo    252081  0.3486    
+[INFO] 10000   Bee       256567  0.5048    
+[INFO] 10000   Bat       249336  1.4044    
+[INFO] 10000   Firefly   252521  4.9931    
+[INFO] 10000   WOA       254084  0.3416
+```
+
+### Testes
+
+```shell
+$ PYTHONPATH=. pytest
+
+====================================== test session starts ======================================
+platform linux -- Python 3.10.12, pytest-8.3.5, pluggy-1.6.0
+rootdir: /home/cristian_prochnow/personal/Mochila-Algoritmos-Bio-Inspirados
+collected 11 items                                                                              
+
+tests/test_algorithm.py .                                                                 [  9%]
+tests/test_all_algorithm.py ........                                                      [ 81%]
+tests/test_problem.py ..                                                                  [100%]
+
+====================================== 11 passed in 0.72s =======================================
+```
 
 ---
 
